@@ -202,8 +202,7 @@ def build_markdown_summary(ranking: pd.DataFrame, excluded_columns: list[str]) -
         ]
     )
 
-    for row in ranking.itertuples(index=False):
-        row_data = row._asdict()
+    for row_data in ranking.to_dict(orient="records"):
         lines.append(
             f"| {row_data['rank']} | {row_data['class']} | {row_data['mean_rank']:.3f} | {row_data['median_rank']:.3f} | "
             f"{row_data['n_responses']} | {row_data['pct_top1']:.1f}% | {row_data['pct_top3']:.1f}% |"
