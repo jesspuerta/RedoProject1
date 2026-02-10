@@ -56,15 +56,18 @@ def detect_duration_like_columns(df: pd.DataFrame) -> list[str]:
                     median_val,
                     max_val,
                 )
-                continue
-
-            # If data are mostly small numerics (e.g., 1..K ranks), do not run timestamp parsing.
-            # This prevents rank columns from being misclassified as datetimes.
-            if median_val <= 12 and max_val <= 31:
-                continue
+            else:
+                logging.info(
+                    "Keeping '%s' as rank-style numeric column (numeric_ratio=%.2f, median=%.2f, max=%.2f).",
+                    col,
+                    numeric_ratio,
+                    median_val,
+                    max_val,
+                )
+            continue
 
         text_values = series.astype(str).str.strip()
-        datetime_text_pattern = r"(\d{4}[-/]\d{1,2}[-/]\d{1,2})|(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})|(\d{1,2}:\d{2})"
+        datetime_text_pattern = r"(?:\d{4}[-/]\d{1,2}[-/]\d{1,2})|(?:\d{1,2}[-/]\d{1,2}[-/]\d{2,4})|(?:\d{1,2}:\d{2})"
         text_datetime_ratio = float(text_values.str.contains(datetime_text_pattern, regex=True, na=False).mean())
         if text_datetime_ratio >= 0.6:
             flagged.append(str(col))
