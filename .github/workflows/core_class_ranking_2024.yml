@@ -1,11 +1,11 @@
-name: Rank Courses 2024
+name: CORE Class Ranking 2024
 
 on:
   pull_request:
   workflow_dispatch:
 
 jobs:
-  build-rankings:
+  core-class-ranking:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,17 +22,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate ranking outputs
-        run: python src/rank_courses_2024.py
+      - name: Generate CORE class ranking outputs
+        run: python src/core_class_ranking_2024.py
 
-      - name: Verify required outputs
+      - name: Verify required outputs exist
         run: |
-          test -f outputs/2024_rank_order.csv
-          test -f outputs/2024_rank_order.png
-          test -f outputs/2024_rank_order.md
+          test -f outputs/core_class_ranking_2024.csv
+          test -f outputs/core_class_ranking_2024.png
 
       - name: Upload outputs artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rank_order_outputs_2024
+          name: core_class_ranking_2024_outputs
           path: outputs/
