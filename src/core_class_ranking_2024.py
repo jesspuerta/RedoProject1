@@ -44,7 +44,7 @@ def detect_duration_like_columns(df: pd.DataFrame) -> list[str]:
             continue
 
         as_num = pd.to_numeric(series, errors="coerce")
-        numeric_ratio = as_num.notna().mean()
+        numeric_ratio = float(as_num.notna().mean())
         if numeric_ratio >= 0.8:
             median_val = float(as_num.median())
             max_val = float(as_num.max())
@@ -58,14 +58,20 @@ def detect_duration_like_columns(df: pd.DataFrame) -> list[str]:
                 )
                 continue
 
-        as_dt = pd.to_datetime(series, errors="coerce")
-        datetime_ratio = as_dt.notna().mean()
-        if datetime_ratio >= 0.6:
+            # If data are mostly small numerics (e.g., 1..K ranks), do not run timestamp parsing.
+            # This prevents rank columns from being misclassified as datetimes.
+            if median_val <= 12 and max_val <= 31:
+                continue
+
+        text_values = series.astype(str).str.strip()
+        datetime_text_pattern = r"(\d{4}[-/]\d{1,2}[-/]\d{1,2})|(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})|(\d{1,2}:\d{2})"
+        text_datetime_ratio = float(text_values.str.contains(datetime_text_pattern, regex=True, na=False).mean())
+        if text_datetime_ratio >= 0.6:
             flagged.append(str(col))
             logging.warning(
-                "Excluding '%s' because values parse as timestamps (ratio=%.2f).",
+                "Excluding '%s' because values look timestamp-like by text pattern (ratio=%.2f).",
                 col,
-                datetime_ratio,
+                text_datetime_ratio,
             )
 
     return sorted(set(flagged))
